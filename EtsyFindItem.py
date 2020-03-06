@@ -21,7 +21,7 @@ def searchEtsyListing(searchWords):
     return { data }
 
 def item_finder(event, context):
-    print(searchEtsyListing("nike")
+    print(searchEtsyListing("nike"))
     #for index, x in enumerate(event["brands"]):
         #listings[index].append(searchEtsyListing(x))
 
