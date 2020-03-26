@@ -16,9 +16,9 @@ def ebay_listing(event):
             'paginationInput': {
                 'entriesPerPage': 10,
                 'pageNumber': 1
-            },
+            }
             #aspectFilter is CASE SENSITIVE. Wording must also be EXACT.
-            'aspectFilter': event["aspectFilters"]
+            #'aspectFilter': event["aspectFilters"]
         }
     response = api.execute('findItemsByKeywords', api_request)
 
