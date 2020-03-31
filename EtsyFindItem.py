@@ -6,7 +6,7 @@ from ebaysdk.finding import Connection as finding
 
 def ebay_listing(event):
     search_terms = '('
-    for x in event["brands"]:
+    for x in event["multiValueQueryStringParameters"]["brands"]:
         search_terms += '"' + x + '"' + ','
     search_terms += ')'
 
@@ -34,7 +34,7 @@ def ebay_listing(event):
  
 #----------------------------------------------------------------
 def etsy_listing(event):
-    for brand in event["brands"]:
+    for brand in event["multiValueQueryStringParameters"]["brands"]:
         payload = {'api_key': os.environ['etsyapikey'],
             'fields':  'listing_id,title,price,url',
             'category': 'Clothing',
