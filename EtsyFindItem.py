@@ -26,10 +26,10 @@ def ebay_listing(event):
     for index, item in enumerate(response.reply.searchResult.item):
         eBayDict[index] = {}
         eBayDict[index]["title"] = item.title
-        eBayDict[index]["price"] = item.sellingStatus.currentPrice.value
-        eBayDict[index]["url"] = item.viewItemURL
+        #eBayDict[index]["price"] = item.sellingStatus.currentPrice.value
+        #eBayDict[index]["url"] = item.viewItemURL
     
-    print(json.dumps(eBayDict, indent=4))
+    #print(json.dumps(eBayDict, indent=4))
     return { json.dumps(eBayDict) }
  
 #----------------------------------------------------------------
@@ -51,11 +51,15 @@ def etsy_listing(event):
             data[index]["url"] = x["url"]
 
     print(json.dumps(data, indent=4))
-    return { json.dumps(data) }
+    return { data.__dict__ }
 
 def item_finder(event, context):
     ebay_str = ebay_listing(event)
-    etsy_str = etsy_listing(event)
-    return{
-        "message": "Success!"
-    }
+    #etsy_str = etsy_listing(event)
+
+    responseObject = {}
+    responseObject['headers'] = {}
+    responseObject['headers']['Content-Type'] = 'application/json'
+    responseObject['body'] = ebay_str
+
+    return responseObject
