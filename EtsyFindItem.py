@@ -22,32 +22,42 @@ def item_finder(event, context):
             #aspectFilter is CASE SENSITIVE. Wording must also be EXACT.
             #'aspectFilter': event["aspectFilters"]
         }
-    eBayResponse = api.execute('findItemsByKeywords', api_request)
 
-    eBayDict = {}
-    for index, item in enumerate(eBayResponse.reply.searchResult.item):
-        eBayDict[index] = {}
-        eBayDict[index]["title"] = item.title
-        eBayDict[index]["price"] = item.sellingStatus.currentPrice.value
-        eBayDict[index]["url"] = item.viewItemURL
+    try:
+        eBayResponse = api.execute('findItemsByKeywords', api_request)
+
+        eBayDict = {}
+        for index, item in enumerate(eBayResponse.reply.searchResult.item):
+            eBayDict[index] = {}
+            eBayDict[index]["title"] = item.title
+            eBayDict[index]["price"] = item.sellingStatus.currentPrice.value
+            eBayDict[index]["url"] = item.viewItemURL
+    except:
+        eBayDict = {}
+        eBayDict["error"] = "Unable to connect..."
 
 
 #-----------------Etsy API--------------
+    etsyDict = {}
     for brand in event["multiValueQueryStringParameters"]["brands"]:
         payload = {'api_key': os.environ['etsyapikey'],
             'fields':  'listing_id,title,price,url',
             'category': 'Clothing',
             'keywords': brand}
 
-        etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?', params=payload)
+        try:
+            etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
+                    params=payload)
 
-        etsyDict = {}
-        #json_file = r.json()
-        for index, x in enumerate(etsyResponse.json()["results"]):
-            etsyDict[index] = {}
-            etsyDict[index]["title"] = x["title"]
-            etsyDict[index]["price"] = x["price"]
-            etsyDict[index]["url"] = x["url"]
+            etsyDict[brand] = {}
+            for index, x in enumerate(etsyResponse.json()["results"]):
+                etsyDict[brand][index] = {}
+                etsyDict[brand][index]["title"] = x["title"]
+                etsyDict[brand][index]["price"] = x["price"]
+                etsyDict[brand][index]["url"] = x["url"]
+        except:
+            etsyDict = {}
+            etsyDict["error"] = "Unexpected error..."
 
 
 #----------------Create and return response----------------
@@ -55,7 +65,7 @@ def item_finder(event, context):
     responseObject = {}
     responseObject['headers'] = {}
     responseObject['headers']['Content-Type'] = 'application/json'
-    responseObject['body']['ebay'] = json.dumps(eBayDict)
-    responseObject['body']['etsy'] = json.dumps(etsyDict)
+    responseObject['body'] = "eBay: " + json.dumps(eBayDict, indent=4)
+    responseObject['body'] += "\n" + "Etsy: " + json.dumps(etsyDict, indent=4)
 
     return responseObject
