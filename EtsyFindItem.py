@@ -40,24 +40,27 @@ def item_finder(event, context):
 #-----------------Etsy API--------------
     etsyDict = {}
     for brand in event["multiValueQueryStringParameters"]["brands"]:
-        payload = {'api_key': os.environ['etsyapikey'],
-            'fields':  'listing_id,title,price,url',
-            'category': 'Clothing',
-            'keywords': brand}
+        etsyDict[brand] = {}
+        for tag in event["multiValueQueryStringParameters"]["tags"]:
+            payload = {'api_key': os.environ['etsyapikey'],
+                'fields':  'listing_id,title,price,url',
+                'category': 'Clothing',
+                'tags': tag,
+                'keywords': brand}
 
-        try:
-            etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
-                    params=payload)
+            try:
+                etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
+                        params=payload)
 
-            etsyDict[brand] = {}
-            for index, x in enumerate(etsyResponse.json()["results"]):
-                etsyDict[brand][index] = {}
-                etsyDict[brand][index]["title"] = x["title"]
-                etsyDict[brand][index]["price"] = x["price"]
-                etsyDict[brand][index]["url"] = x["url"]
-        except:
-            etsyDict = {}
-            etsyDict["error"] = "Unexpected error..."
+                etsyDict[brand][tag] = {}
+                for index, x in enumerate(etsyResponse.json()["results"]):
+                    etsyDict[brand][tag][index] = {}
+                    etsyDict[brand][tag][index]["title"] = x["title"]
+                    etsyDict[brand][tag][index]["price"] = x["price"]
+                    etsyDict[brand][tag][index]["url"] = x["url"]
+            except:
+                etsyDict = {}
+                etsyDict["error"] = "Unexpected error..."
 
 
 #----------------Create and return response----------------
