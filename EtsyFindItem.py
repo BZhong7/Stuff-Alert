@@ -4,27 +4,39 @@ import os
 
 from ebaysdk.finding import Connection as finding
 
-def item_finder(event, context):
 
-#-----------------eBay Finding API------------------    
+def item_finder(event, context):
+    # -----------------eBay Finding API------------------
     eBayDict = {}
+    testObj = [{'aspectName': 'Size', 'aspectValueName': '29'},
+               {'aspectName': 'Size', 'aspectValueName': '33'}]
     for brand in event["multiValueQueryStringParameters"]["brands"]:
         eBayDict[brand] = {}
         for tag in event["multiValueQueryStringParameters"]["tags"]:
             search_terms = brand + " " + tag
 
-            Keywords = search_terms
+
             api = finding(appid=os.environ["ebayapikey"], config_file=None, https=True)
-            api_request = { 'keywords': Keywords,
-                'paginationInput': {
-                    'entriesPerPage': 10,
-                    'pageNumber': 1
-                },
-                #aspectFilter is CASE SENSITIVE. Wording must also be EXACT.
-                'aspectFilter': {
-                    'aspectName': "Size", 'aspectValueName': '32'
+            if tag == "Pants":
+                #search_terms += " Size 33"
+                api_request = {'keywords': search_terms,
+                                'paginationInput': {
+                                'entriesPerPage': 10,
+                                'pageNumber': 1
+                                },
+
+                                # aspectFilter is CASE SENSITIVE. Wording must also be EXACT.
+                                'aspectFilter': testObj
                 }
-            }
+            else:
+                api_request = {'keywords': search_terms,
+                                'paginationInput': {
+                                'entriesPerPage': 10,
+                                'pageNumber': 1
+                                },
+
+                               'aspectFilter': [{'aspectName': 'Size', 'aspectValueName': '10.5'}]
+                }
 
             try:
                 eBayResponse = api.execute('findItemsByKeywords', api_request)
@@ -39,22 +51,21 @@ def item_finder(event, context):
                 eBayDict[brand][tag] = {}
                 eBayDict[brand][tag]["error"] = "Unexpected error..."
 
-
-#-----------------Etsy API--------------
+    # -----------------Etsy API--------------
     etsyDict = {}
     for brand in event["multiValueQueryStringParameters"]["brands"]:
         etsyDict[brand] = {}
         for tag in event["multiValueQueryStringParameters"]["tags"]:
             payload = {'api_key': os.environ['etsyapikey'],
-                'fields':  'listing_id,title,price,url',
-                'category': 'Clothing',
-                'tags': tag,
-                'keywords': brand,
-            }
+                       'fields': 'listing_id,title,price,url',
+                       'category': 'Clothing',
+                       #'tags': tag,
+                       'keywords': brand + tag
+                       }
 
             try:
                 etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
-                        params=payload)
+                                            params=payload)
 
                 etsyDict[brand][tag] = {}
                 for index, x in enumerate(etsyResponse.json()["results"]):
@@ -63,11 +74,10 @@ def item_finder(event, context):
                     etsyDict[brand][tag][index]["price"] = x["price"]
                     etsyDict[brand][tag][index]["url"] = x["url"]
             except:
-                etsyDict = {}
-                etsyDict["error"] = "Unexpected error..."
+                etsyDict[brand][tag] = {}
+                etsyDict[brand][tag]["error"] = "Unexpected error..."
 
-
-#----------------Create and return response----------------
+    # ----------------Create and return response----------------
 
     responseObject = {}
     responseObject['headers'] = {}
