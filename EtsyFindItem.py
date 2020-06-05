@@ -5,11 +5,24 @@ import os
 from ebaysdk.finding import Connection as finding
 
 
+def create_aspect_filter(size):
+    aspectFilter = []
+
+    # aspectFilter is CASE SENSITIVE. Wording must also be EXACT.
+    for x in size:
+        aspectFilter.append({'aspectName': 'Size', 'aspectValueName': size})
+
+    return aspectFilter
+
+
+def create_pagination_input():
+    pageObj = {'entriesPerPage': 10, 'pageNumber': 1}
+    return pageObj
+
+
 def item_finder(event, context):
     # -----------------eBay Finding API------------------
     eBayDict = {}
-    testObj = [{'aspectName': 'Size', 'aspectValueName': '29'},
-               {'aspectName': 'Size', 'aspectValueName': '33'}]
     for brand in event["multiValueQueryStringParameters"]["brands"]:
         eBayDict[brand] = {}
         for tag in event["multiValueQueryStringParameters"]["tags"]:
@@ -17,26 +30,28 @@ def item_finder(event, context):
 
 
             api = finding(appid=os.environ["ebayapikey"], config_file=None, https=True)
-            if tag == "Pants":
-                #search_terms += " Size 33"
+            if tag == "Pants": #& len(event["multiValueQueryStringParameters"]["pantsSize"]) != 0:
                 api_request = {'keywords': search_terms,
-                                'paginationInput': {
-                                'entriesPerPage': 10,
-                                'pageNumber': 1
-                                },
-
-                                # aspectFilter is CASE SENSITIVE. Wording must also be EXACT.
-                                'aspectFilter': testObj
-                }
+                               'paginationInput': create_pagination_input(),
+                               'aspectFilter': create_aspect_filter(
+                                    event["multiValueQueryStringParameters"]["pantsSize"])
+                               }
+            elif tag == "Shoes": #& len(event["multiValueQueryStringParameters"]["shoeSize"]) != 0:
+                api_request = {'keywords': search_terms,
+                               'paginationInput': create_pagination_input(),
+                               'aspectFilter': create_aspect_filter(
+                                   event["multiValueQueryStringParameters"]["shoeSize"])
+                               }
+            elif tag == "Shirts": #& len(event["multiValueQueryStringParameters"]["shirtSize"]) != 0:
+                api_request = {'keywords': search_terms,
+                               'paginationInput': create_pagination_input(),
+                               'aspectFilter': create_aspect_filter(
+                                   event["multiValueQueryStringParameters"]["shirtSize"])
+                               }
             else:
                 api_request = {'keywords': search_terms,
-                                'paginationInput': {
-                                'entriesPerPage': 10,
-                                'pageNumber': 1
-                                },
-
-                               'aspectFilter': [{'aspectName': 'Size', 'aspectValueName': '10.5'}]
-                }
+                               'paginationInput': create_pagination_input(),
+                               }
 
             try:
                 eBayResponse = api.execute('findItemsByKeywords', api_request)
