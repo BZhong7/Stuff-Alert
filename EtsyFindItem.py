@@ -28,27 +28,27 @@ def item_finder(event, context):
         for tag in event["multiValueQueryStringParameters"]["tags"]:
             search_terms = brand + " " + tag
 
-
             api = finding(appid=os.environ["ebayapikey"], config_file=None, https=True)
-            if tag == "Pants": #& len(event["multiValueQueryStringParameters"]["pantsSize"]) != 0:
-                api_request = {'keywords': search_terms,
-                               'paginationInput': create_pagination_input(),
-                               'aspectFilter': create_aspect_filter(
-                                    event["multiValueQueryStringParameters"]["pantsSize"])
-                               }
-            elif tag == "Shoes": #& len(event["multiValueQueryStringParameters"]["shoeSize"]) != 0:
-                api_request = {'keywords': search_terms,
-                               'paginationInput': create_pagination_input(),
-                               'aspectFilter': create_aspect_filter(
-                                   event["multiValueQueryStringParameters"]["shoeSize"])
-                               }
-            elif tag == "Shirts": #& len(event["multiValueQueryStringParameters"]["shirtSize"]) != 0:
-                api_request = {'keywords': search_terms,
-                               'paginationInput': create_pagination_input(),
-                               'aspectFilter': create_aspect_filter(
-                                   event["multiValueQueryStringParameters"]["shirtSize"])
-                               }
-            else:
+            try:
+                if tag == "Pants" & len(event["multiValueQueryStringParameters"]["pantsSize"]) > 0:
+                    api_request = {'keywords': search_terms,
+                                   'paginationInput': create_pagination_input(),
+                                   'aspectFilter': create_aspect_filter(
+                                       event["multiValueQueryStringParameters"]["pantsSize"])
+                                   }
+                elif tag == "Shoes" & len(event["multiValueQueryStringParameters"]["shoeSize"]) > 0:
+                    api_request = {'keywords': search_terms,
+                                   'paginationInput': create_pagination_input(),
+                                   'aspectFilter': create_aspect_filter(
+                                       event["multiValueQueryStringParameters"]["shoeSize"])
+                                   }
+                elif tag == "Shirts" & len(event["multiValueQueryStringParameters"]["shirtSize"]) > 0:
+                    api_request = {'keywords': search_terms,
+                                   'paginationInput': create_pagination_input(),
+                                   'aspectFilter': create_aspect_filter(
+                                       event["multiValueQueryStringParameters"]["shirtSize"])
+                                   }
+            except:
                 api_request = {'keywords': search_terms,
                                'paginationInput': create_pagination_input(),
                                }
@@ -64,18 +64,22 @@ def item_finder(event, context):
                     eBayDict[brand][tag][index]["url"] = item.viewItemURL
             except:
                 eBayDict[brand][tag] = {}
-                eBayDict[brand][tag]["error"] = "Unexpected error..."
+                eBayDict[brand][tag]["error"] = "Error: No Results..."
 
     # -----------------Etsy API--------------
     etsyDict = {}
     for brand in event["multiValueQueryStringParameters"]["brands"]:
+        # Etsy 'tags' seem to use APC instead of A.P.C., so change it to match Etsy.
+        if brand == "A.P.C.":
+            brand = "APC"
         etsyDict[brand] = {}
+
         for tag in event["multiValueQueryStringParameters"]["tags"]:
             payload = {'api_key': os.environ['etsyapikey'],
                        'fields': 'listing_id,title,price,url',
-                       'category': 'Clothing',
-                       #'tags': tag,
-                       'keywords': brand + tag
+                       #'category': 'Clothing',
+                       'tags': brand,
+                       'keywords': tag
                        }
 
             try:
