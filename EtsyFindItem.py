@@ -5,6 +5,22 @@ import os
 from ebaysdk.finding import Connection as finding
 
 
+def create_etsy_payload(brand, tag):
+    if brand == "":
+        payload = {'api_key': os.environ['etsyapikey'],
+                   'fields': 'listing_id,title,price,url',
+                   'keywords': tag
+                   }
+    else:
+        payload = {'api_key': os.environ['etsyapikey'],
+                   'fields': 'listing_id,title,price,url',
+                   # 'category': 'Clothing',
+                   'tags': brand,
+                   'keywords': tag
+                   }
+    return payload
+
+
 def create_aspect_filter(size):
     aspectFilter = []
 
@@ -78,16 +94,17 @@ def item_finder(event, context):
         etsyDict[brand] = {}
 
         for tag in event["multiValueQueryStringParameters"]["tags"]:
-            payload = {'api_key': os.environ['etsyapikey'],
-                       'fields': 'listing_id,title,price,url',
-                       #'category': 'Clothing',
-                       'tags': brand,
-                       'keywords': tag
-                       }
+            payload = create_etsy_payload(brand, tag)
 
             try:
-                etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
+                if brand == "NN07":
+                    brandAndTag = brand + " " + tag
+                    payload = create_etsy_payload("", brandAndTag)
+                    etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
                                             params=payload)
+                else:
+                    etsyResponse = requests.get('https://openapi.etsy.com/v2/listings/active?',
+                                                params=payload)
 
                 etsyDict[brand][tag] = {}
                 for index, x in enumerate(etsyResponse.json()["results"]):
