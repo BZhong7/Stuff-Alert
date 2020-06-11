@@ -70,8 +70,11 @@ def item_finder(event, context):
     etsyDict = {}
     for brand in event["multiValueQueryStringParameters"]["brands"]:
         # Etsy 'tags' seem to use APC instead of A.P.C., so change it to match Etsy.
+        # Same for No Nationality -> NN07
         if brand == "A.P.C.":
             brand = "APC"
+        elif brand == "No Nationality":
+            brand = "NN07"
         etsyDict[brand] = {}
 
         for tag in event["multiValueQueryStringParameters"]["tags"]:
