@@ -118,10 +118,21 @@ def item_finder(event, context):
 
     # ----------------Create and return response----------------
 
-    responseObject = {}
-    responseObject['headers'] = {}
-    responseObject['headers']['Content-Type'] = 'application/json'
-    responseObject['body'] = "eBay: " + json.dumps(eBayDict, indent=4)
-    responseObject['body'] += "\n" + "Etsy: " + json.dumps(etsyDict, indent=4)
+    combined_dict = {**eBayDict, **etsyDict}
 
-    return responseObject
+    #responseObject = {}
+    #responseObject['headers'] = {}
+    #responseObject['headers']['Content-Type'] = 'application/json'
+    #responseObject['body'] = json.dumps(combined_dict)
+    #responseObject['body'] += "/n" + json.dumps(etsyDict)
+
+
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET'
+        },
+        'body': json.dumps(combined_dict)
+    }
