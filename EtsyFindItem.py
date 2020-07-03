@@ -14,7 +14,6 @@ def create_etsy_payload(brand, tag):
     else:
         payload = {'api_key': os.environ['etsyapikey'],
                    'fields': 'listing_id,title,price,url',
-                   # 'category': 'Clothing',
                    'tags': brand,
                    'keywords': tag
                    }
@@ -119,13 +118,6 @@ def item_finder(event, context):
     # ----------------Create and return response----------------
 
     combined_dict = {**eBayDict, **etsyDict}
-
-    #responseObject = {}
-    #responseObject['headers'] = {}
-    #responseObject['headers']['Content-Type'] = 'application/json'
-    #responseObject['body'] = json.dumps(combined_dict)
-    #responseObject['body'] += "/n" + json.dumps(etsyDict)
-
 
     return {
         'statusCode': 200,
